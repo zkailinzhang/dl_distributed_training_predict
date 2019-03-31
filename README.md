@@ -1,2 +1,2 @@
 # dl_distributed_training
-tensorflow, pytorch, keras, distributed_training, on cloud poly
+tensorflow, pytorch, keras, distributed_training, on cloud,cluster,server
