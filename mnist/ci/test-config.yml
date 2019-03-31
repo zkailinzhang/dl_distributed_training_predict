@@ -1,0 +1,118 @@
+isMinikube: true
+
+rbac:
+  enabled: false
+
+ingress:
+  enabled: false
+
+serviceType: NodePort
+
+user:
+  username: travis
+  password: travis
+
+postgresql:
+  imageTag: 9.6.1-alpine
+  resources:
+    requests:
+      memory: 40Mi
+      cpu: 20m
+
+redis:
+  imageTag: 4.0.2-alpine
+  resources:
+    requests:
+      memory: 40Mi
+      cpu: 20m
+
+rabbitmq:
+  imageTag: 3.6.12-management-alpine
+  resources:
+    requests:
+      memory: 40Mi
+      cpu: 20m
+
+api:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+streams:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+scheduler:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+hpsearch:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+eventsHandlers:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+beat:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+crons:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+eventMonitors:
+  namespace:
+    resources:
+      requests:
+        memory: 80Mi
+        cpu: 30m
+
+  statuses:
+    resources:
+      requests:
+        memory: 80Mi
+        cpu: 30m
+
+resourcesDaemon:
+  resources:
+    requests:
+      memory: 80Mi
+      cpu: 30m
+
+persistence:
+  logs:
+    mountPath: "/tmp/logs"
+    hostPath: "/tmp/logs"
+  repos:
+    existingClaim:
+    mountPath: "/tmp/repos"
+    hostPath: "/tmp/repos"
+  upload:
+    existingClaim:
+    mountPath: "/tmp/upload"
+    hostPath: "/tmp/upload"
+  data:
+    data:
+      mountPath: "/tmp/data"
+      hostPath: "/tmp/data"
+  outputs:
+    outputs:
+      mountPath: "/tmp/outputs"
+      hostPath: "/tmp/outputs"
+
+environment: testing
