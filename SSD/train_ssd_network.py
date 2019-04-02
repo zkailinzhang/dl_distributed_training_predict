@@ -16,7 +16,8 @@
 
 """Generic training script that trains a SSD model using a given dataset."""
 import os
-os.environ["CUDA_VISIBLE_DEVICE"] ='0'
+
+from polyaxon_client.tracking import Experiment, get_log_level, get_data_paths, get_outputs_path
 
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
@@ -27,12 +28,44 @@ from nets import nets_factory
 from preprocessing import preprocessing_factory
 import tf_utils
 
+
+
+def set_logging(log_level=None):
+    if log_level == 'INFO':
+        log_level = tf.logging.INFO
+    elif log_level == 'DEBUG':
+        log_level = tf.logging.DEBUG
+    elif log_level == 'WARN':
+        log_level = tf.logging.WARN
+    else:
+        log_level = 'INFO'
+
+    tf.logging.set_verbosity(log_level)
+
+
+set_logging(get_log_level())
+
+experiment = Experiment()
+
+vm_paths = list(get_data_paths().values())[0]
+
+data_paths = "{}/SSD/tfrecords".format(vm_paths)
+
+
+
+checkpointpath = "{}/SSD.checkpoints/ssd_300_vgg.ckpt".format(vm_paths)
+TRAIN_DIR = get_outputs_path()
+
+
+
+
+
+
+
 slim = tf.contrib.slim
- # channels first (NCHW) is normally optimal on GPU and channels last (NHWC)
-        # on CPU. The exception is Intel MKL on CPU which is optimal with
-        # channels_last.
-#DATA_FORMAT = 'NHWC'
-DATA_FORMAT = 'NCHW'
+ 
+DATA_FORMAT = 'NHWC'
+
 
 # =========================================================================== #
 # SSD Network flags.
@@ -48,7 +81,7 @@ tf.app.flags.DEFINE_float(
 # General Flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_string(
-    'train_dir', '/tmp/tfmodel/',
+    'train_dir', TRAIN_DIR,
     'Directory where checkpoints and event logs are written to.')
 
     #what mean?
@@ -147,13 +180,13 @@ tf.app.flags.DEFINE_float(
 # Dataset Flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_string(
-    'dataset_name', 'imagenet', 'The name of the dataset to load.')
+    'dataset_name', 'pascalvoc_2007', 'The name of the dataset to load.')
 tf.app.flags.DEFINE_integer(
     'num_classes', 21, 'Number of classes to use in the dataset. voc2007 20+1  ')
 tf.app.flags.DEFINE_string(
     'dataset_split_name', 'train', 'The name of the train/test split.')
 tf.app.flags.DEFINE_string(
-    'dataset_dir', None, 'The directory where the dataset files are stored.')
+    'dataset_dir', data_paths, 'The directory where the dataset files are stored.')
 tf.app.flags.DEFINE_integer(
     'labels_offset', 0,
     'An offset for the labels in the dataset. This flag is primarily used to '
@@ -165,18 +198,18 @@ tf.app.flags.DEFINE_string(
     'preprocessing_name', None, 'The name of the preprocessing to use. If left '
     'as `None`, then the model_name flag is used.')
 tf.app.flags.DEFINE_integer(
-    'batch_size', 16, 'The number of samples in each batch.')
+    'batch_size', 2, 'The number of samples in each batch.')
 tf.app.flags.DEFINE_integer(
     'train_image_size', None, 'Train image size')
     #moren none
-tf.app.flags.DEFINE_integer('max_number_of_steps', 10000,
+tf.app.flags.DEFINE_integer('max_number_of_steps', 100,
                             'The maximum number of training steps.')
 
 # =========================================================================== #
 # Fine-Tuning Flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_string(
-    'checkpoint_path', None,
+    'checkpoint_path', checkpointpath,
     'The path to a checkpoint from which to fine-tune.')
     #?
 tf.app.flags.DEFINE_string(
@@ -367,8 +400,15 @@ def main(_):
             clones,
             optimizer,
             var_list=variables_to_train)
+
+        #??? 张量转numpy
+       # print("total_loss metrics: {}", total_loss.eval())
+       # experiment.log_metrics(loss=total_loss.eval())
+
+        xx = tf.summary.scalar('total_loss', total_loss)
+        print('xxxxxx: {}'.format(xx))
         # Add total_loss to summary.
-        summaries.add(tf.summary.scalar('total_loss', total_loss))
+        summaries.add(xx)
 
         # Create gradient updates.
         grad_updates = optimizer.apply_gradients(clones_gradients,
@@ -391,10 +431,12 @@ def main(_):
         gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=FLAGS.gpu_memory_fraction)
         config = tf.ConfigProto(log_device_placement=False,
                                 gpu_options=gpu_options)
+
         saver = tf.train.Saver(max_to_keep=5,
                                keep_checkpoint_every_n_hours=1.0,
                                write_version=2,
                                pad_step_number=False)
+
         slim.learning.train(
             train_tensor,
             logdir=FLAGS.train_dir,

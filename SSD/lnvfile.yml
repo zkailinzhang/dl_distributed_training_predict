@@ -3,10 +3,17 @@ version: 1
 
 kind: experiment
 
+framework: Tensorflow
+
+tags: [object detection]
+
+
+
 build:
   image: tensorflow/tensorflow:1.4.1-py3
   build_steps:
     - pip3 install --no-cache-dir -U polyaxon-client==0.4.2
 
 run:
-  cmd:  python3 -u cifar10_train.py  # Use default params
+  cmd:  python3 -u train_ssd_network.py  # Use default params
+  #cmd: ./train07.sh

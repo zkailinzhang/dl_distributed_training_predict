@@ -1,8 +1,11 @@
 #!/bin/bash
 
-DATASET_DIR=./tfrecords
+#serverk8s 
+DATA=/data/SSD
+
+DATASET_DIR=${DATA}/tfrecords
 TRAIN_DIR=./logs/
-CHECKPOINT_PATH=./checkpoints/ssd_300_vgg.ckpt
+CHECKPOINT_PATH=${DATA}/checkpoints/ssd_300_vgg.ckpt
 python train_ssd_network.py \
     --train_dir=${TRAIN_DIR} \
     --dataset_dir=${DATASET_DIR} \
